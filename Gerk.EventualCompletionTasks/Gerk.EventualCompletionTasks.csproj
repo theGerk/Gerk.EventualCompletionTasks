@@ -1,8 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net6</TargetFrameworks>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.1;net6</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Copyright>MIT</Copyright>
+		<PackageProjectUrl>https://github.com/theGerk/Gerk.EventualCompletionTasks</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/theGerk/Gerk.EventualCompletionTasks</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>Tasks</PackageTags>
+		<Version>1.0.0</Version>
+	</PropertyGroup>
 
 </Project>

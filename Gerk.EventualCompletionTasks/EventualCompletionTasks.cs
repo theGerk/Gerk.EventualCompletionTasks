@@ -6,27 +6,76 @@ using System.Threading.Tasks;
 
 namespace Gerk.EventualCompletionTasks
 {
-	public static class Extensions
+	/// <summary>
+	/// Extension methods
+	/// </summary>
+	public static class EventualCompletionTasksExtensions
 	{
-		public static EventualCompletionTasks Initialize(this EventualCompletionTasks? tasks)
+		/// <summary>
+		/// Returns the same object if <paramref name="tasks"/> is not <see langword="null"/>. Returns a new object if <paramref name="tasks"/> is null. Needs to be paired with a using of some kind. Is equivalent to <see cref="EventualCompletionTasks.Initialize(ref EventualCompletionTasks?)"/>.
+		/// </summary>
+		/// <param name="tasks"></param>
+		/// <returns></returns>
+		public static EventualCompletionTasks Initialize(this EventualCompletionTasks? tasks) => EventualCompletionTasks.Initialize(ref tasks);
+	}
+
+	/// <summary>
+	/// Holds tasks that get completed eventually.
+	/// <example>
+	/// <code>
+	/// void foo(EventualCompletionTasks? tasks = null) {
+	///		using(EventualCompletionTasks.Initialize(tasks))
+	///		{
+	///			// do stuff here
+	///		}
+	///	}
+	///	</code>
+	/// </example>
+	/// or
+	/// <example>
+	/// <code>
+	/// void foo(EventualCompletionTasks? tasks = null) {
+	///		using(tasks = tasks.Initialize())
+	///		{
+	///			// do stuff here
+	///		}
+	///	}
+	///	</code>
+	/// </example>
+	/// </summary>
+	public class EventualCompletionTasks : IAsyncDisposable
+	{
+		/// <summary>		
+		/// Returns same object as is passed in, simply for easy of use. Returns a new object if <paramref name="tasks"/> is null. Needs to be paired with a using of some kind. Is equivalent to <see cref="EventualCompletionTasksExtensions.Initialize(EventualCompletionTasks?)"/>.
+		/// </summary>
+		/// <param name="tasks"></param>
+		/// <returns></returns>
+		public static EventualCompletionTasks Initialize(ref EventualCompletionTasks? tasks)
 		{
 			if (tasks == null)
-				return new EventualCompletionTasks();
+				return tasks = new EventualCompletionTasks();
 
 			Interlocked.Increment(ref tasks.refrencesToMe);
 			return tasks;
 		}
-	}
 
-
-	public class EventualCompletionTasks : IAsyncDisposable
-	{
 		readonly ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
-		internal int refrencesToMe = 1;
+		int refrencesToMe = 1;
 
+		/// <summary>
+		/// Add a task to eventually be completed
+		/// </summary>
+		/// <param name="task"></param>
 		public void Add(Task task) => tasks.Add(task);
+		/// <summary>
+		/// Add a <see cref="ValueTask"/> to eventually be completed. Currently just uses <see cref="ValueTask.AsTask"/>.
+		/// </summary>
+		/// <param name="task"></param>
 		public void Add(ValueTask task) => Add(task.AsTask());
 
+		/// <summary>
+		/// Constructor. Make sure to put in using.
+		/// </summary>
 		public EventualCompletionTasks() { }
 
 		async ValueTask WaitAll()
@@ -48,6 +97,10 @@ namespace Gerk.EventualCompletionTasks
 				throw new AggregateException(exceptions);
 		}
 
+		/// <summary>
+		/// Don't call this directly, weird things may happen.
+		/// </summary>
+		/// <returns></returns>
 		public ValueTask DisposeAsync()
 		{
 			if (Interlocked.Decrement(ref refrencesToMe) == 0)
